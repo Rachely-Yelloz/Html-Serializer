@@ -8,4 +8,17 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="JSON-Files\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="JSON-Files\HtmlTags.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="JSON-Files\HtmlVoidTags.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
