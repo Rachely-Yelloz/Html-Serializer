@@ -22,7 +22,7 @@ namespace Html_Serializer
         {
             Name = name;
             Classes = new List<string>();
-            Attributes=new List<string>();
+            Attributes = new List<string>();
             var atrebuteList = new Regex("([^\\s]*?)=\"(.*?)\"")
              .Matches(atr.Substring(name.Length))
              .Cast<Match>().ToList()
@@ -35,9 +35,9 @@ namespace Html_Serializer
 
                     Classes.Add(aname.Substring(aname.IndexOf("=") + 1));
                 }
-                else if(aname.ToLower() == "id")
+                else if (aname.ToLower() == "id")
                 {
-                    Id=int.Parse(aname.Substring(aname.IndexOf("=") + 1));
+                    Id = int.Parse(aname.Substring(aname.IndexOf("=") + 1));
 
                 }
                 else
