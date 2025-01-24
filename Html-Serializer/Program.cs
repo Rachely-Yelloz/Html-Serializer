@@ -15,7 +15,8 @@ var htmlLines = new Regex("<(.*?)>").Split(cleanHtml).Where(s => s.Length > 0).T
 
 var htmlElement = "<div id=\"my-id\" class=\"my-class-1 my-class-2\" width=\"100%\">text</div>";
 var attributes = new Regex("([^\\s]*?)=\"(.*?)\"").Matches(htmlElement);
-HtmlElement root = new HtmlElement() { Name = "html" };
+HtmlElement root = new HtmlElement("html", htmlLines[1].Substring(htmlLines[1].IndexOf(" ") + 1), null);
+
 HtmlElement current = root;
 
 for (int i = 0; i < htmlLines.Length; i++)
@@ -47,14 +48,9 @@ for (int i = 0; i < htmlLines.Length; i++)
 
     if (HtmlHelper.Instance.HtmlTags.Any(tags => tags == n))
     {
-        HtmlElement newChild = new HtmlElement();
-        //ביטוי רגולרי להכנסה של אטרביוט ועוד
-        newChild.Attributes = new Regex("([^\\s]*?)=\"(.*?)\"")
-            .Matches(htmlLines[i].Substring(n.Length))
-            .Cast<Match>().ToList()
-            .Select(match => match.Value).ToList();
-        newChild.Name = n;
-        newChild.Parent = current;
+        HtmlElement newChild = new HtmlElement(n, htmlLines[i].Substring(htmlLines[i].IndexOf(" ") + 1), current);
+     
+        
         if(current.Children==null)
         {
             current.Children = new List<HtmlElement>();
