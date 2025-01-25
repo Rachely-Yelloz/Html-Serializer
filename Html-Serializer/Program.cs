@@ -1,6 +1,57 @@
-﻿using Html_Serializer;
+﻿
+using Html_Serializer;
 using System.Text.RegularExpressions;
-using System.Threading.Channels;
+
+var html = await Load("https://learn.malkabruk.co.il/");
+
+var cleanHtml = new Regex("\\s").Replace(html, " ");
+
+var htmlLines = new Regex("<(.*?)>").Split(cleanHtml).Where(i => i.Length > 0 && i[0] != ' ').ToList();
+
+HtmlElement root = new HtmlElement("html", htmlLines[1].Substring(htmlLines[1].IndexOf(" ") + 1), null);
+HtmlElement currentElement = root;
+
+htmlLines = htmlLines.GetRange(2, htmlLines.Count() - 2);
+
+foreach (string line in htmlLines)
+{
+    if (line[0] == '/')
+        if (line.Substring(1) == currentElement.Name)
+            currentElement = currentElement.Parent;
+        else
+        {
+            if (currentElement.InnerHtml == null)
+                currentElement.InnerHtml = "";
+            currentElement.InnerHtml += line;
+        }
+    else
+    {
+        var spaceIndex = line.IndexOf(" ");
+        string tagName;
+        if (spaceIndex >= 0)
+            tagName = line.Substring(0, spaceIndex);
+        else
+            tagName = line.Substring(0, line.Length);
+        if (HtmlHelper.Instance.HtmlTags.Contains(tagName))
+        {
+            HtmlElement newElement = new HtmlElement(tagName, line.Substring(line.IndexOf(" ") + 1), currentElement);
+            if (currentElement.Children == null)
+                currentElement.Children = new List<HtmlElement>();
+            currentElement.Children.Add(newElement);
+            if (!HtmlHelper.Instance.HtmlVoidTags.Contains(tagName))
+                currentElement = newElement;
+        }
+        else
+        {
+            if (currentElement.InnerHtml == null)
+                currentElement.InnerHtml = "";
+            currentElement.InnerHtml += line;
+        }
+    }
+}
+
+Selector selector = Selector.Convert("div img");
+var result = root.SearchFitElements(selector);
 
 static async Task<string> Load(string url)
 {
@@ -9,61 +60,11 @@ static async Task<string> Load(string url)
     var html = await response.Content.ReadAsStringAsync();
     return html;
 }
-var html = await Load("https://www.malkabruk.co.il/");
-var cleanHtml = new Regex("//s").Replace(html, "");
-var htmlLines = new Regex("<(.*?)>").Split(cleanHtml).Where(s => s.Length > 0).ToArray();
 
-var htmlElement = "<div id=\"my-id\" class=\"my-class-1 my-class-2\" width=\"100%\">text</div>";
-var attributes = new Regex("([^\\s]*?)=\"(.*?)\"").Matches(htmlElement);
-HtmlElement root = new HtmlElement("html", htmlLines[1].Substring(htmlLines[1].IndexOf(" ") + 1), null);
-
-HtmlElement current = root;
-
-for (int i = 0; i < htmlLines.Length; i++)
+foreach (var ancestor in result.First().Ancestors())
 {
-    if (htmlLines[i].StartsWith("/"))
-    {
-
-        if (htmlLines[i].Substring(1) == current.Name)
-        {
-            current = current.Parent;
-        }
-        else
-        {
-            if (current.InnerHtml == null)
-            {
-                current.InnerHtml = "";
-            }
-            current.InnerHtml += htmlLines[i];
-        }
-
-    }
-    int spaceIndex = htmlLines[i].IndexOf(' ');
-    string n;
-    if (spaceIndex != -1)
-    {
-        n = htmlLines[i].Substring(0, spaceIndex);
-    }
-    else n = htmlLines[i];
-
-    if (HtmlHelper.Instance.HtmlTags.Any(tags => tags == n))
-    {
-        HtmlElement newChild = new HtmlElement(n, htmlLines[i].Substring(htmlLines[i].IndexOf(" ") + 1), current);
-     
-        
-        if(current.Children==null)
-        {
-            current.Children = new List<HtmlElement>();
-        }
-        current.Children.Add(newChild);
-        if (!HtmlHelper.Instance.HtmlVoidTags.Any(h => h == n))
-            current = newChild;
-    }
-    else
-    {
-        if (current.InnerHtml == null)
-            current.InnerHtml = "";
-        current.InnerHtml += htmlLines[i];
-    }
-
+    Console.WriteLine(ancestor.Name);
 }
+
+
+
