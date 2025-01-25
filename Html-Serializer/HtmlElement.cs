@@ -47,5 +47,30 @@ namespace Html_Serializer
             }
             Parent = parent;
         }
+        public IEnumerable<HtmlElement> Descendants()
+        {
+            Queue<HtmlElement> htmlElementsQueue = new Queue<HtmlElement>();
+            if (this.Children != null)
+                foreach (var child in this.Children)
+                    htmlElementsQueue.Enqueue(child);
+            while (htmlElementsQueue.Count > 0)
+            {
+                HtmlElement htmlElement = htmlElementsQueue.Dequeue();
+                yield return htmlElement;
+                if (htmlElement.Children != null)
+                    foreach (var child in htmlElement.Children)
+                        htmlElementsQueue.Enqueue(child);
+            }
+        }
+        public IEnumerable<HtmlElement> Ancestors()
+        {
+            HtmlElement htmlElement = this.Parent;
+            while (htmlElement != null)
+            {
+                yield return htmlElement;
+                htmlElement = htmlElement.Parent;
+            }
+        }
     }
 }
+

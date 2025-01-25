@@ -13,50 +13,47 @@ namespace Html_Serializer
         public List<string> Classes { get; set; }
         public Selector Parent { get; set; }
         public Selector Child { get; set; }
+
         public static Selector Convert(string query)
         {
-            Selector current = new Selector(), root = current;
-            string[] degree = query.Split(" ");
-            if (degree.Length != 1)
+            Selector root = null;
+            Selector current = null;
+
+            string[] degrees = query.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var degree in degrees)
             {
+                Selector newSelector = new Selector();
 
-                for (int i = degree.Length - 1; i >= 0; i--)
+                string[] parts = degree.Split(new[] { '#', '.' }, StringSplitOptions.RemoveEmptyEntries);
+
+                int i = 0;
+                if (HtmlHelper.Instance.HtmlTags.Any(t => t == parts[i]))
                 {
-                    if (degree[i][0] == '#')
-                        current.Id = degree[i].Substring(1);
-                    else if (degree[i][0] == '.')
-
-                        current.Classes = new List<string>() { degree[i].Substring(1) };
-
-                    else
-                    {
-                        if (HtmlHelper.Instance.HtmlTags.Any(t => t == degree[i]))
-                            current.TagName = degree[i];
-                    }
-                    current.Parent = new Selector() { Child = current };
-                    current = current.Parent;
-                }
-            }
-            else
-            {
-              
-
-                string[] parts = query.Split(new char[] { '#', '.' }, StringSplitOptions.RemoveEmptyEntries);
-                if(HtmlHelper.Instance.HtmlTags.Any(t=>t==parts[0]))
-
-                root.TagName = parts[0]; // התג תמיד יהיה הראשון
-
-                // חיפוש מזהה
-                if (query.Contains("#"))
-                {
-                    root.Id = parts[1]; // המזהה יהיה השני אם קיים
+                    newSelector.TagName = parts[i++];
                 }
 
-                // חיפוש מחלקות
-                for (int i = 2; i < parts.Length; i++)
+                if (degree.Contains("#"))
                 {
-                    root.Classes.Add(parts[i]); // שאר החלקים הם מחלקות
+                    newSelector.Id = parts[i++];
                 }
+
+                while (i < parts.Length)
+                {
+                    newSelector.Classes.Add(parts[i++]);
+                }
+
+                if (current == null)
+                {
+                    root = newSelector;
+                }
+                else
+                {
+                    current.Child = newSelector; 
+                    newSelector.Parent = current; 
+                }
+
+                current = newSelector; 
             }
 
             return root;
